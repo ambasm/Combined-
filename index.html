@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>SOUN & Hyundai Motor — Share Price & 200-Day Moving Average</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f5f7fa;font-family:'Times New Roman',Times,serif;color:#000;}
+.wrap{max-width:1340px;margin:0 auto;padding:20px 18px;}
+
+/* ── TAB NAV ── */
+.tab-nav{display:flex;gap:0;margin-bottom:0;border-bottom:3px solid #1a5fa0;}
+.tab-btn{padding:11px 32px;font-family:'Times New Roman',Times,serif;font-size:1rem;font-weight:900;border:none;cursor:pointer;border-radius:8px 8px 0 0;background:#e0e8f4;color:#444;letter-spacing:.5px;transition:background .2s,color .2s;}
+.tab-btn.active{background:#1a5fa0;color:#fff;}
+.tab-btn:hover:not(.active){background:#c8d8ec;color:#1a5fa0;}
+
+/* ── PANEL ── */
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* ── PAGE HEADER (shared style) ── */
+.page-header{background:#1a5fa0;color:#fff;border-radius:0 8px 8px 8px;padding:14px 20px 10px;margin-bottom:14px;}
+.page-header h1{font-family:'Times New Roman',Times,serif;font-size:1.45rem;font-weight:900;color:#fff;letter-spacing:.8px;line-height:1.35;margin-bottom:3px;text-align:center;}
+.page-header .sub{text-align:center;font-size:.88rem;color:#cce0ff;font-weight:700;letter-spacing:.5px;}
+
+/* ── LEGEND ── */
+.legend{display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;background:#fff;border:1px solid #ccd4e0;border-radius:6px;padding:9px 16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.li{display:flex;align-items:center;gap:6px;font-family:'Times New Roman',Times,serif;font-weight:700;font-size:.85rem;color:#000;}
+.lb{width:30px;height:3px;border-radius:2px;}
+.lc{width:11px;height:11px;border-radius:50%;}
+
+/* ── CHART AREA ── */
+.chart-wrap{background:#fff;border:1px solid #ccd4e0;border-radius:8px;padding:16px 16px 10px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.07);position:relative;}
+.analyst-label{font-size:.8rem;color:#000;font-family:'Times New Roman',Times,serif;font-weight:700;margin-bottom:6px;}
+.chart-container{position:relative;}
+canvas{width:100%!important;}
+
+/* ── SOUN ANNOTATIONS ── */
+.ann{position:absolute;border-radius:5px;padding:6px 10px;font-size:.72rem;line-height:1.45;font-family:'Times New Roman',Times,serif;font-weight:900;pointer-events:none;white-space:nowrap;color:#000;}
+.soun-ann-nvidia{background:#ddeeff;border:2px solid #4488cc;top:72%;left:6%;}
+.soun-ann-golden{background:#d4f5e6;border:2px solid #20a060;top:60%;left:16%;}
+.soun-ann-ath{background:#fff5cc;border:2px solid #c09000;top:4%;left:46%;}
+.soun-ann-deepseek{background:#ffe8d0;border:2px solid #c05010;top:22%;left:56%;}
+.soun-ann-nvidia-exit{background:#ffd6d6;border:2px solid #c03030;top:50%;left:58%;}
+.soun-ann-apr9{position:absolute;background:#e8f0ff;border:2px solid #3060a0;border-radius:5px;padding:6px 10px;font-size:.72rem;line-height:1.45;font-family:'Times New Roman',Times,serif;font-weight:900;pointer-events:none;white-space:nowrap;color:#000;top:62%;right:1%;}
+.soun-phase1{position:absolute;top:14px;left:6%;font-size:.8rem;color:#555;font-weight:900;font-family:'Times New Roman',Times,serif;}
+.soun-phase2{position:absolute;top:14px;left:28%;font-size:.8rem;color:#1a7040;font-weight:900;font-family:'Times New Roman',Times,serif;}
+.soun-phase3{position:absolute;top:14px;left:64%;font-size:.8rem;color:#c03030;font-weight:900;font-family:'Times New Roman',Times,serif;}
+
+/* ── HYUNDAI ANNOTATIONS ── */
+.hyu-ann-death{background:#ffe8e8;border:2px solid #c03030;color:#000;top:48%;left:17%;}
+.hyu-ann-golden{background:#e0f8ec;border:2px solid #20a060;color:#000;top:52%;left:50%;}
+.hyu-ann-ath{background:#fffbe0;border:2px solid #c09000;color:#000;top:6%;right:9%;}
+.hyu-phase1{position:absolute;bottom:22px;left:8%;font-size:.88rem;color:#c03030;font-weight:900;font-family:'Times New Roman',Times,serif;letter-spacing:.5px;}
+.hyu-phase2{position:absolute;bottom:22px;left:35%;font-size:.88rem;color:#b08010;font-weight:900;font-family:'Times New Roman',Times,serif;letter-spacing:.5px;}
+.hyu-phase3{position:absolute;bottom:22px;left:57%;font-size:.88rem;color:#1a8040;font-weight:900;font-family:'Times New Roman',Times,serif;letter-spacing:.5px;}
+
+/* ── CARDS ── */
+.cards-6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:4px;}
+.cards-7{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:4px;}
+.card{border-radius:6px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.10);}
+.card-hdr{padding:8px 8px 6px;text-align:center;}
+.card-date{font-size:.72rem;font-weight:700;color:#fff;font-family:'Times New Roman',Times,serif;}
+.card-price{font-size:1rem;font-weight:900;color:#fff;font-family:'Times New Roman',Times,serif;letter-spacing:.5px;}
+.card-title{font-size:.88rem;font-weight:900;margin-bottom:6px;padding-bottom:5px;border-bottom:2px solid rgba(0,0,0,.1);color:#000;font-family:'Times New Roman',Times,serif;}
+.card-list{list-style:none;}
+.card-list li{font-size:.8rem;padding:3px 0;color:#000;line-height:1.5;font-weight:700;font-family:'Times New Roman',Times,serif;}
+.card-list li::before{content:"• ";color:#333;}
+
+/* SOUN card colours */
+.c-blue .card-hdr{background:#1a5fa0;} .c-blue{border:1px solid #90b8e0;} .c-blue .card-body{background:#f0f6ff;padding:10px;}
+.c-green .card-hdr{background:#1a6a28;} .c-green{border:1px solid #80c090;} .c-green .card-body{background:#f0fff4;padding:10px;}
+.c-gold .card-hdr{background:#a07000;} .c-gold{border:1px solid #d4b040;} .c-gold .card-body{background:#fffbe8;padding:10px;}
+.c-red .card-hdr{background:#c0252a;} .c-red{border:1px solid #e8b0b0;} .c-red .card-body{background:#fff0f0;padding:10px;}
+.c-orange .card-hdr{background:#b04010;} .c-orange{border:1px solid #e0b880;} .c-orange .card-body{background:#fff5ee;padding:10px;}
+.c-grey .card-hdr{background:#505060;} .c-grey{border:1px solid #b0b8c8;} .c-grey .card-body{background:#f6f7fa;padding:10px;}
+
+/* Hyundai card colours */
+.hc-red .card-hdr{background:#e88a8a;} .hc-red{border:1px solid #f0c0c0;} .hc-red .card-body{background:#fff5f5;padding:10px;}
+.hc-orange .card-hdr{background:#e8a070;} .hc-orange{border:1px solid #f0d4b0;} .hc-orange .card-body{background:#fffaf3;padding:10px;}
+.hc-darkorange .card-hdr{background:#d89060;} .hc-darkorange{border:1px solid #e8caa0;} .hc-darkorange .card-body{background:#fff8f0;padding:10px;}
+.hc-green .card-hdr{background:#5aaa78;} .hc-green{border:1px solid #a0d8b0;} .hc-green .card-body{background:#f2fff6;padding:10px;}
+.hc-orange2 .card-hdr{background:#e8a070;} .hc-orange2{border:1px solid #f0d4b0;} .hc-orange2 .card-body{background:#fffaf3;padding:10px;}
+.hc-blue .card-hdr{background:#6090d0;} .hc-blue{border:1px solid #a0bce0;} .hc-blue .card-body{background:#f2f6ff;padding:10px;}
+.hc-purple .card-hdr{background:#9070c0;} .hc-purple{border:1px solid #c8b0e0;} .hc-purple .card-body{background:#faf5ff;padding:10px;}
+/* card-date/price overrides for Hyundai (dark header = keep white text) */
+.hc-red .card-date,.hc-orange .card-date,.hc-darkorange .card-date,
+.hc-green .card-date,.hc-orange2 .card-date,.hc-blue .card-date,.hc-purple .card-date{color:#fff;}
+.hc-red .card-price,.hc-orange .card-price,.hc-darkorange .card-price,
+.hc-green .card-price,.hc-orange2 .card-price,.hc-blue .card-price,.hc-purple .card-price{color:#fff;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── TAB NAVIGATION ── -->
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('soun',this)">🔊 SoundHound AI (SOUN)</button>
+    <button class="tab-btn" onclick="switchTab('hyundai',this)">🚗 Hyundai Motor (005380)</button>
+  </div>
+
+  <!-- ════════════════════════ PANEL 1 — SOUN ════════════════════════ -->
+  <div id="panel-soun" class="panel active">
+    <div class="page-header">
+      <h1>SoundHound AI Inc. (NASDAQ: SOUN) — Daily Close Price & 200-Day Moving Average</h1>
+      <div class="sub">Jan 2024 to Apr 9, 2026 &nbsp;|&nbsp; Phases, Signals & Key Events</div>
+    </div>
+
+    <div class="legend">
+      <div class="li"><div class="lb" style="background:#1a70c0;"></div>Daily Close Price (USD)</div>
+      <div class="li"><div class="lb" style="background:#c07800;border-top:2px dashed #c07800;height:0;"></div>200-Day Moving Average (dashed)</div>
+      <div class="li"><div class="lc" style="background:#e03030;"></div>Death Cross (sell signal)</div>
+      <div class="li"><div class="lc" style="background:#20a060;"></div>Golden Cross (buy signal)</div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="analyst-label">ATH: $24.23 (Dec 26, 2024) &nbsp;|&nbsp; Today Apr 9 2026: $6.74 &nbsp;|&nbsp; Oct 2025 secondary peak: $22.18 &nbsp;|&nbsp; 200-DMA shown as orange dashed line</div>
+      <div class="chart-container" style="position:relative;">
+        <canvas id="sounChart" height="340"></canvas>
+        <div class="ann soun-ann-nvidia"><strong>Nvidia stake<br>revealed</strong></div>
+        <div class="ann soun-ann-golden"><strong>Golden Cross<br>Mar 2024</strong></div>
+        <div class="ann soun-ann-ath"><strong>ATH $24<br>Dec 2024</strong></div>
+        <div class="ann soun-ann-deepseek"><strong>DeepSeek<br>selloff</strong></div>
+        <div class="ann soun-ann-nvidia-exit"><strong>Nvidia exits<br>stake Feb 25</strong></div>
+        <div class="soun-ann-apr9 ann"><strong>Today<br>Apr 9 2026<br>$6.74</strong></div>
+        <div class="soun-phase1">Phase 1</div>
+        <div class="soun-phase2">Phase 2: Uptrend (+1000%)</div>
+        <div class="soun-phase3">Phase 3: Correction</div>
+      </div>
+    </div>
+
+    <div class="cards-6">
+      <div class="card c-blue">
+        <div class="card-hdr"><div class="card-date">Jan – Feb 2024</div><div class="card-price">$2 → $5</div></div>
+        <div class="card-body"><div class="card-title">▲ Nvidia Stake Revealed</div>
+          <ul class="card-list"><li>Nvidia disclosed SOUN holding</li><li>AI voice tech excitement spiked</li><li>Volume surge on retail interest</li></ul></div>
+      </div>
+      <div class="card c-green">
+        <div class="card-hdr"><div class="card-date">Mar – Apr 2024</div><div class="card-price">$5 → $8</div></div>
+        <div class="card-body"><div class="card-title">▲ Golden Cross — BUY</div>
+          <ul class="card-list"><li>50-DMA crossed above 200-DMA</li><li>Bullish technical signal triggered</li><li>Price peaked ~$8 before pullback</li></ul></div>
+      </div>
+      <div class="card c-gold">
+        <div class="card-hdr"><div class="card-date">May – Nov 2024</div><div class="card-price">$4 → $9</div></div>
+        <div class="card-body"><div class="card-title">▲ Phase 2: Uptrend Builds</div>
+          <ul class="card-list"><li>AI sector momentum accelerated</li><li>Revenue growth beat estimates</li><li>+1000% from Jan 2024 lows</li></ul></div>
+      </div>
+      <div class="card c-red">
+        <div class="card-hdr"><div class="card-date">Dec 2024 – Jan 2025</div><div class="card-price">ATH $24</div></div>
+        <div class="card-body"><div class="card-title">🚀 All-Time High</div>
+          <ul class="card-list"><li>AI hype reached peak euphoria</li><li>Death cross formed at the top</li><li>Retail + institutional FOMO buying</li></ul></div>
+      </div>
+      <div class="card c-orange">
+        <div class="card-hdr"><div class="card-date">Feb – Mar 2025</div><div class="card-price">$24 → $12</div></div>
+        <div class="card-body"><div class="card-title">▼ DeepSeek + Nvidia Exit</div>
+          <ul class="card-list"><li>DeepSeek selloff hit AI stocks hard</li><li>Nvidia fully exited SOUN stake</li><li>Price collapsed 50%+ in weeks</li></ul></div>
+      </div>
+      <div class="card c-grey">
+        <div class="card-hdr"><div class="card-date">Apr – Dec 2025</div><div class="card-price">$9.98</div></div>
+        <div class="card-body"><div class="card-title">↔ Phase 3: Consolidation</div>
+          <ul class="card-list"><li>Price range-bound $9–$14</li><li>200-DMA acting as resistance</li><li>FY2025 close: $9.98 (−5%)</li></ul></div>
+      </div>
+    </div>
+  </div><!-- /panel-soun -->
+
+  <!-- ════════════════════════ PANEL 2 — HYUNDAI ════════════════════════ -->
+  <div id="panel-hyundai" class="panel">
+    <div class="page-header" style="background:#1a3a70;">
+      <h1>Hyundai Motor Co. (KRX: 005380) — Share Price & 200-Day Moving Average</h1>
+      <div class="sub">Jan 2024 to Apr 9, 2026 &nbsp;|&nbsp; Reasons for Every Rise & Fall</div>
+    </div>
+
+    <div class="legend">
+      <div class="li"><div class="lb" style="background:#1a80c0;"></div>Share Price (blue line)</div>
+      <div class="li"><div class="lb" style="background:#c09000;border-top:2px dashed #c09000;height:0;"></div>200-Day Moving Avg (yellow dashed)</div>
+      <div class="li"><div class="lb" style="background:#c03030;"></div>Price BELOW yellow → Bearish</div>
+      <div class="li"><div class="lb" style="background:#1a8040;"></div>Price ABOVE yellow → Bullish</div>
+      <div class="li"><div class="lc" style="background:#e05050;"></div>Death Cross (sell signal)</div>
+      <div class="li"><div class="lc" style="background:#20a060;"></div>Golden Cross (buy signal)</div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="analyst-label">Analyst Buy Target avg ₩627K (+23% from today)</div>
+      <div class="chart-container" style="position:relative;">
+        <canvas id="hyuChart" height="320"></canvas>
+        <div class="ann hyu-ann-death"><strong>DEATH CROSS</strong><br>Blue drops BELOW yellow<br>→ Bearish / Sell signal</div>
+        <div class="ann hyu-ann-golden"><strong>GOLDEN CROSS</strong><br>Blue rises ABOVE yellow<br>→ Bullish / Buy signal ✓</div>
+        <div class="ann hyu-ann-ath">ATH ₩687K ★</div>
+        <div class="hyu-phase1">PHASE 1<br>Bearish</div>
+        <div class="hyu-phase2">PHASE 2<br>Neutral</div>
+        <div class="hyu-phase3">PHASE 3 — Bullish (price stays above yellow line)</div>
+      </div>
+    </div>
+
+    <div class="cards-7">
+      <div class="card hc-red">
+        <div class="card-hdr"><div class="card-date">Apr 2024</div><div class="card-price">₩241K</div></div>
+        <div class="card-body"><div class="card-title">▲ HEV Sales Surge</div>
+          <ul class="card-list"><li>HEV demand +60% in US</li><li>Strong Q1 2024 earnings beat</li><li>Positive global EV sentiment</li></ul></div>
+      </div>
+      <div class="card hc-orange">
+        <div class="card-hdr"><div class="card-date">Jul 2024</div><div class="card-price">₩200K</div></div>
+        <div class="card-body"><div class="card-title">▼ Death Cross Warning</div>
+          <ul class="card-list"><li>KRW currency weakened vs USD</li><li>Warranty cost provisions rose</li><li>US tariff fears hit confidence</li></ul></div>
+      </div>
+      <div class="card hc-darkorange">
+        <div class="card-hdr"><div class="card-date">Sep 2024</div><div class="card-price">₩188K</div></div>
+        <div class="card-body"><div class="card-title">▼ Trough (False Signal)</div>
+          <ul class="card-list"><li>Q4 operating profit fell 17.2%</li><li>Margin squeezed short-term</li><li>Bounced back in just 8 weeks</li></ul></div>
+      </div>
+      <div class="card hc-green">
+        <div class="card-hdr"><div class="card-date">Jan 2025</div><div class="card-price">₩218K</div></div>
+        <div class="card-body"><div class="card-title">▲ Golden Cross — BUY</div>
+          <ul class="card-list"><li>HMGMA Georgia factory opened</li><li>US tariff costs started falling</li><li>HEV reached 15.3% global share</li></ul></div>
+      </div>
+      <div class="card hc-orange2">
+        <div class="card-hdr"><div class="card-date">Apr 2025</div><div class="card-price">₩175K</div></div>
+        <div class="card-body"><div class="card-title">▼ Short Dip — Recovery</div>
+          <ul class="card-list"><li>Tariff headline risk spiked</li><li>Korea-wide market sell-off</li><li>Recovered quickly — dip buying</li></ul></div>
+      </div>
+      <div class="card hc-blue">
+        <div class="card-hdr"><div class="card-date">Feb 2026</div><div class="card-price">₩687K</div></div>
+        <div class="card-body"><div class="card-title">▲ All-Time High</div>
+          <ul class="card-list"><li>HMGMA fully ramped — no tariffs</li><li>NVIDIA self-driving deal signed</li><li>28/28 analysts rated BUY</li></ul></div>
+      </div>
+      <div class="card hc-purple">
+        <div class="card-hdr"><div class="card-date">Apr 9 2026</div><div class="card-price">₩509K</div></div>
+        <div class="card-body"><div class="card-title">↕ Today — Pullback</div>
+          <ul class="card-list"><li>Normal correction after ATH</li><li>Still +71% above golden cross</li><li>Earnings due Apr 23 — catalyst</li></ul></div>
+      </div>
+    </div>
+  </div><!-- /panel-hyundai -->
+
+</div><!-- /wrap -->
+
+<script>
+/* ── TAB SWITCHER ── */
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── SHARED MONTH LABELS ── */
+const months=['Jan 24','Feb 24','Mar 24','Apr 24','May 24','Jun 24','Jul 24','Aug 24','Sep 24','Oct 24','Nov 24','Dec 24','Jan 25','Feb 25','Mar 25','Apr 25','May 25','Jun 25','Jul 25','Aug 25','Sep 25','Oct 25','Nov 25','Dec 25','Jan 26','Feb 26','Mar 26','Apr 9'];
+
+/* ── SOUN CHART ── */
+const sounPrice=[2.20,5.00,8.00,5.50,4.20,4.00,6.46,4.00,4.00,5.38,9.50,19.84,22.00,15.00,8.55,10.00,11.00,12.00,14.00,11.00,11.00,22.18,11.98,9.98,10.54,10.00,6.87,6.74];
+const sounDma=  [2.20,2.50,3.00,3.60,4.00,4.10,4.20,4.15,4.10,4.15,4.40,5.80, 8.00,10.00,11.00,11.20,11.00,10.80,11.00,11.20,11.50,12.00,12.50,12.00,11.50,11.20,10.50,10.20];
+
+new Chart(document.getElementById('sounChart').getContext('2d'),{
+  type:'line',
+  data:{
+    labels:months,
+    datasets:[
+      {label:'Price ABOVE DMA',data:sounPrice.map((p,i)=>p>=sounDma[i]?p:null),borderColor:'transparent',backgroundColor:'rgba(20,140,60,0.12)',fill:{target:{value:0},above:'rgba(20,140,60,0.12)'},pointRadius:0,tension:0.4},
+      {label:'Price BELOW DMA',data:sounPrice.map((p,i)=>p<sounDma[i]?p:null),borderColor:'transparent',backgroundColor:'rgba(200,30,30,0.10)',fill:{target:{value:0},above:'rgba(200,30,30,0.10)'},pointRadius:0,tension:0.4},
+      {label:'200-Day Moving Average',data:sounDma,borderColor:'#c07800',borderDash:[8,4],borderWidth:2.2,pointRadius:0,tension:0.5,fill:false},
+      {label:'Daily Close Price',data:sounPrice,borderColor:'#1a70c0',borderWidth:2.8,
+        pointRadius:sounPrice.map((p,i)=>[1,2,11,12,13,23].includes(i)?7:3),
+        pointBackgroundColor:sounPrice.map((p,i)=>{if(i===2)return'#20a060';if(i===12)return'#e03030';if(i===13)return'#e03030';return'#1a70c0';}),
+        pointBorderColor:'#fff',pointBorderWidth:1.5,tension:0.4,fill:false}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(255,255,255,0.97)',borderColor:'#ccd4e0',borderWidth:1,titleColor:'#000',bodyColor:'#000',
+      titleFont:{family:"'Times New Roman',Times,serif",weight:'bold',size:12},
+      bodyFont:{family:"'Times New Roman',Times,serif",weight:'bold',size:11},
+      callbacks:{label:ctx=>{if(ctx.dataset.label==='Daily Close Price')return` Price: $${ctx.raw}`;if(ctx.dataset.label==='200-Day Moving Average')return` 200-DMA: $${ctx.raw}`;return null;},
+      filter:ctx=>ctx.dataset.label==='Daily Close Price'||ctx.dataset.label==='200-Day Moving Average'}}},
+    scales:{x:{ticks:{color:'#000',font:{size:11,family:"'Times New Roman',Times,serif",weight:'bold'},maxRotation:45},grid:{color:'#e8eef4'}},
+      y:{min:0,max:26,ticks:{color:'#000',font:{size:11,family:"'Times New Roman',Times,serif",weight:'bold'},callback:v=>'$'+v},grid:{color:'#e8eef4'},
+        title:{display:true,text:'Share Price (USD)',color:'#000',font:{size:12,family:"'Times New Roman',Times,serif",weight:'bold'}}}}}
+});
+
+/* ── HYUNDAI CHART ── */
+const hyuPrice=[210,222,235,241,228,214,200,194,188,195,205,212,218,210,195,175,210,258,320,370,390,440,510,565,620,687,600,509];
+const hyuDma=  [208,209,210,212,214,214,213,211,209,208,208,209,210,211,210,208,210,216,228,243,262,285,312,340,372,408,438,465];
+const analystTarget=hyuPrice.map(()=>627);
+
+new Chart(document.getElementById('hyuChart').getContext('2d'),{
+  type:'line',
+  data:{labels:months,datasets:[
+    {label:'Price ABOVE 200DMA',data:hyuPrice.map((p,i)=>p>=hyuDma[i]?p:null),borderColor:'transparent',backgroundColor:'rgba(20,140,60,0.15)',fill:{target:{value:0},above:'rgba(20,140,60,0.15)',below:'transparent'},pointRadius:0,tension:0.4},
+    {label:'Price BELOW 200DMA',data:hyuPrice.map((p,i)=>p<hyuDma[i]?p:null),borderColor:'transparent',backgroundColor:'rgba(200,30,30,0.12)',fill:{target:{value:0},above:'rgba(200,30,30,0.12)',below:'transparent'},pointRadius:0,tension:0.4},
+    {label:'Analyst Target ₩627K',data:analystTarget,borderColor:'rgba(40,120,180,0.45)',borderDash:[6,4],borderWidth:1.2,pointRadius:0,tension:0,fill:false},
+    {label:'200-Day Moving Average',data:hyuDma,borderColor:'#c09000',borderDash:[8,4],borderWidth:2.2,pointRadius:0,tension:0.5,fill:false},
+    {label:'Share Price',data:hyuPrice,borderColor:'#1a70c0',borderWidth:2.5,
+      pointRadius:hyuPrice.map((p,i)=>[3,6,8,12,15,25,27].includes(i)?6:0),
+      pointBackgroundColor:hyuPrice.map((p,i)=>i===6?'#e03030':i===12?'#20a060':i===25?'#c09000':'#1a70c0'),
+      pointBorderColor:'#fff',pointBorderWidth:1.5,tension:0.4,fill:false}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(255,255,255,0.97)',borderColor:'#c0ccd8',borderWidth:1,titleColor:'#1a2030',bodyColor:'#3a4a60',
+      callbacks:{label:ctx=>{if(ctx.dataset.label==='Share Price')return` Price: ₩${ctx.raw.toLocaleString()}K`;if(ctx.dataset.label==='200-Day Moving Average')return` 200-DMA: ₩${ctx.raw.toLocaleString()}K`;return null;},
+      filter:ctx=>ctx.dataset.label==='Share Price'||ctx.dataset.label==='200-Day Moving Average'}}},
+    scales:{x:{ticks:{color:'#000',font:{size:11,family:"'Times New Roman', Times, serif",weight:'bold'},maxRotation:45},grid:{color:'#e8eef4'}},
+      y:{min:140,max:720,ticks:{color:'#000',font:{size:11,family:"'Times New Roman', Times, serif",weight:'bold'},callback:v=>'₩'+v+'K'},grid:{color:'#e8eef4'},
+        title:{display:true,text:'Share Price (KRW 000s)',color:'#333',font:{size:11,family:"'Times New Roman', Times, serif",weight:'bold'}}}}}
+});
+</script>
+</body>
+</html>
